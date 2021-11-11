@@ -7,9 +7,9 @@ def pulse():
     num = random.randrange(0,100)
 
     if(num < 50):
-        print('less than half')
+        print('{} is less than half'.format(num))
     elif(num > 50):
-        print('more than half')
+        print('{} is more than half'.format(num))
 
 def main():
     print('Starting pulse in: ')
