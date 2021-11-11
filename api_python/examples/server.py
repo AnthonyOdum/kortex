@@ -2,7 +2,7 @@
 import sys,os
 
 from flask import Flask, render_template
-from robotics_test import main
+from server_test import main
 
 app = Flask(__name__)
 

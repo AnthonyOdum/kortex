@@ -2,16 +2,11 @@ import logo from './logo.svg';
 import cpLogo from './Cyberpunk-logo.png';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.css';
-import { Button } from 'react-bootstrap';
+import Button from './button.js';
 import React from 'react';
-import { render } from 'react-dom';
 
 class App extends React.Component {
-  callBackend() {
-    let xhttp = new XMLHttpRequest()
-    xhttp.open('GET', 'http://localhost:5000/start')
-    xhttp.send()
-  }
+  
 
   render() {
     return (
@@ -91,11 +86,8 @@ class App extends React.Component {
             </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col-5" id="start-button-col">
-            <h2 class="header">Click Start to Begin</h2>
-            <button type="button" class="btn btn-light" onClick={this.callBackend}>Start</button>
-          </div>
+        <div>
+          <Button />
         </div>
       </div>
       </div>
