@@ -14,8 +14,8 @@ def pulse():
 def main():
     print('Starting pulse in: ')
     for i in reversed(range(3)):
-        sleep(1)
         print('{} seconds'.format(i+1))
+        sleep(1)
     pulse()
 
 if __name__ == "__main__":
