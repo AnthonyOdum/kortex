@@ -3,7 +3,7 @@ import sys,os
 
 from flask import Flask, render_template, request, redirect, url_for
 from cyberpunk_test_2 import main
-from robotics_test import robotics_test
+from server_test import robotics_test
 from server_test_2 import server_test
 from cyberpunk_test import robot_demo
 import webbrowser

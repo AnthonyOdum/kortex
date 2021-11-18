@@ -1,0 +1,49 @@
+.obj-detect-col{
+    text-align: center;
+    margin-top: 10% !important;
+}
+
+#obj-detect-header{
+    text-align: center;
+    font-size: 4.5rem;
+}
+
+.start-btn{
+    font-size: xx-large !important;
+    width: 15%;
+}
+
+.c-row{
+    margin: 3% 18% 0 18% !important;
+}
+
+.coord-col{
+    margin-bottom: 3%;
+}
+
+.coor-input{
+    width: 36%;
+}
+
+#z-coord-area{
+    margin: 0 30% 0 30%;
+}
+
+#z-input{
+    width: 30%;
+}
+
+.input-enter-btn{
+    width: 24%;
+    margin-left: 4%;
+}
+
+.drop-row{
+    margin-top: 15% !important;
+    text-align: center;
+}
+
+#drop-off-header{
+    font-style: italic;
+    font-size: 3.5rem;
+}
