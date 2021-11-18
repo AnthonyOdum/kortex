@@ -16,18 +16,23 @@ html, body, #root, .App {
 */
 
 #coordinates {
-  background-color: orange;
+  background-color: #B6E2FE;
   width: 33%;
 }
 
 #gripper {
-  background-color: green;
+  background-color: #70C7FF;
   width: 33%;
 }
 
 #home {
-  background-color: blueviolet;
+  background-color: #21A9FF;
   width: 33%;
+}
+
+#objectDetection{
+  width: 65%;
+  background-color: #B6E2FE;
 }
 
 .left_inner_container {
