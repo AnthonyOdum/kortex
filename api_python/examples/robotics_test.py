@@ -11,12 +11,12 @@ def pulse():
     elif(num > 50):
         print('more than half')
 
-def main():
+def robotics_test():
     print('Starting pulse in: ')
     for i in reversed(range(3)):
         sleep(1)
         print('{} seconds'.format(i+1))
     pulse()
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__robotics_test__":
+    robotics_test()
