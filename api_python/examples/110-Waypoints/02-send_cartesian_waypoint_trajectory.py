@@ -50,7 +50,7 @@ def example_move_to_home_position(base):
     
     # Move arm to ready position
     print("Moving the arm to a safe position")
-    action_type = Base_pb2.RequestedActionType()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
     action_type.action_type = Base_pb2.REACH_JOINT_ANGLES
     action_list = base.ReadAllActions(action_type)
     action_handle = None

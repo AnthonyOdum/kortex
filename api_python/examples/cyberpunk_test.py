@@ -17,6 +17,8 @@ import time
 import sys
 import os
 import threading
+from kortex_api.autogen.messages.ProductConfiguration_pb2 import ARM_LATERALITY_LEFT
+import pyrealsense2 as rs
 
 
 from kortex_api.TCPTransport import TCPTransport
@@ -41,6 +43,8 @@ class GripperCommandExample:
 
 # Maximum allowed waiting time during actions (in seconds)
 TIMEOUT_DURATION = 20
+
+SPEED = 5.0
 
 # Create closure to set an event after an END or an ABORT
 def check_for_end_or_abort(e):
@@ -131,34 +135,6 @@ def example_twist_command(base, lin_x, lin_y, lin_z):
 
     return True
 
-def SecondMovement(base):
-
-    command = Base_pb2.TwistCommand()
-
-    command.reference_frame = Base_pb2.CARTESIAN_REFERENCE_FRAME_TOOL
-    command.duration = 0
-
-    twist = command.twist
-    twist.linear_x = 0
-    twist.linear_y = -0.0
-    twist.linear_z = 0
-    twist.angular_x = 0
-    twist.angular_y = 0
-    twist.angular_z = 0
-
-    print("Beginning second movement...")
-    print ("Sending the twist command for 5 seconds...")
-    base.SendTwistCommand(command)
-
-    # Let time for twist to be executed
-    time.sleep(5)
-
-    print ("Stopping the robot...")
-    base.Stop()
-    time.sleep(1)
-
-    return True
-
 def ExampleSendGripperCommands(self, gripPos):
 
         # Create the GripperCommand we will send
@@ -185,9 +161,9 @@ def ExampleSendGripperCommands(self, gripPos):
 def populateCartesianCoordinate(x,y,z, bR, tX,tY,tZ):
     waypoint = Base_pb2.CartesianWaypoint() 
     
-    waypoint.pose.x = x - .049
-    waypoint.pose.y = y - .049
-    waypoint.pose.z = z - .049 
+    waypoint.pose.x = x
+    waypoint.pose.y = y
+    waypoint.pose.z = z
     waypoint.blending_radius = bR
     waypoint.pose.theta_x = tX
     waypoint.pose.theta_y = tY
@@ -239,7 +215,7 @@ def example_trajectory(base, x, y, z):
 
         waypoints.use_optimal_blending = True
         base.ExecuteWaypointTrajectory(waypoints)
-
+        
         print("Waiting for trajectory to finish ...")
         finished_opt = e.wait(TIMEOUT_DURATION)
         base.Unsubscribe(notification_handle)
@@ -248,14 +224,15 @@ def example_trajectory(base, x, y, z):
             print("Cartesian trajectory with optimization completed ")
         else:
             print("Timeout on action notification wait for optimized trajectory")
+        
 
         return finished_opt
         
     else:
         print("Error found in trajectory") 
         result.trajectory_error_report.PrintDebugString();
-
-def robot_demo(x, y, z):
+"""
+def initialize():
     # Import the utilities helper module
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     import utilities
@@ -269,12 +246,166 @@ def robot_demo(x, y, z):
         # Create required services
         gripper = GripperCommandExample(router)
         base = BaseClient(router)
-        
+
+    return gripper,base;
+
+"""
+
+def robot_panning(x:float, y:float, z:float):
+    # Import the utilities helper module
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    import utilities
+
+    # Parse arguments
+    args = utilities.parseConnectionArguments()
+
+    # Create a context object. This object owns the handles to all connected realsense devices
+    pipeline = rs.pipeline()
+    print('pipeline created')
+
+    # Configure streams
+    config = rs.config()
+    config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+    print('config configured')
+
+    # Start streaming
+    pipeline.start(config)
+    print('streaming started')
+
+    
+    command = Base_pb2.TwistCommand()
+    twist = command.twist
+    
+    
+    # Create connection to the device and get the router
+    with utilities.DeviceConnection.createTcpConnection(args) as router:
+
+        # Create required services
+        gripper = GripperCommandExample(router)
+        base = BaseClient(router)
 
         # Example core
         success = True
         success &= example_move_to_home_position(base)
+        success &= ExampleSendGripperCommands(gripper, 0)
+        if(success):
+            print('im home')
+            print(base.GetMeasuredCartesianPose())
         success &= example_trajectory(base, x, y, z)
+        
+        subtraction = True
+        minDistance = 100
+        objectFacingPose = {
+            'x': 0,
+            'y': 0,
+            'z': 0,
+            'theta_x': 0,
+            'theta_y': 0,
+            'theta_z': 0,
+        }
+        while(success):
+
+            frames = pipeline.wait_for_frames()
+            depth = frames.get_depth_frame()
+            width = int(depth.get_width())
+            height = int(depth.get_height())
+
+            distance = depth.get_distance(int(width/2.0), int(height/2.0))
+
+            print('Current Distance: ', distance)
+            print('Current Minimum Distance: ', minDistance)
+
+            if distance < minDistance and distance != 0:
+                print('New minimum distance')
+                minDistance = distance
+                objectFacingPose['x'] = base.GetMeasuredCartesianPose().x
+                objectFacingPose['y'] = base.GetMeasuredCartesianPose().y
+                objectFacingPose['z']= base.GetMeasuredCartesianPose().z
+                objectFacingPose['theta_x'] = base.GetMeasuredCartesianPose().theta_x
+                objectFacingPose['theta_y'] = base.GetMeasuredCartesianPose().theta_y
+                objectFacingPose['theta_z'] = base.GetMeasuredCartesianPose().theta_z
+
+            
+            """
+            if(y >= .189):
+                example_trajectory(base, x, -.208, z)
+            else:
+                example_trajectory(base, x, .189, z)
+
+            """
+            if(y <= .189 and subtraction):
+                y -= .004
+                example_trajectory(base, x, y, z)
+                #print(base.GetMeasuredCartesianPose())
+                #print(y)
+                if(y <= -.208):
+                    print('robot facing object position: ', objectFacingPose)
+                    print('minimum distance: ', minDistance)
+                    #print('subtraction is now false')
+                    subtraction = False
+            
+            if(minDistance != 100 and y <= -.208):
+                working = True
+                working &= example_trajectory(base, objectFacingPose['x'], objectFacingPose['y'], objectFacingPose['z'])
+                working &= example_twist_command(base, .0, 0, .04)
+
+                working &= ExampleSendGripperCommands(gripper, 0.3)
+                working &= example_move_to_home_position(base)
+
+                working &= example_trajectory(base, .543, .119, .17)
+                working &= ExampleSendGripperCommands(gripper, 0)
+                working &= example_move_to_home_position(base)
+
+
+
+            if(y <= -.208 or not subtraction):
+                y += .004
+                example_trajectory(base, x, y, z)
+                #print(base.GetMeasuredCartesianPose())
+                if(y >= .189):
+                    print('robot facing object position: ', objectFacingPose)
+                    print('minimum distance: ', minDistance)
+                    subtraction = True
+                    y = .189
+
+            
+            base.SendTwistCommand(command)
+
+    return 0 if success else 1
+
+def robot_demo(x, y, z):
+    
+    # Import the utilities helper module
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+    import utilities
+
+    # Parse arguments
+    args = utilities.parseConnectionArguments()
+    
+    # Create connection to the device and get the router
+    with utilities.DeviceConnection.createTcpConnection(args) as router:
+
+        # Create required services
+        gripper = GripperCommandExample(router)
+        base = BaseClient(router)
+
+        # Example core
+        success = True
+        success &= example_move_to_home_position(base)
+        if(success):
+            print('im home')
+        success &= example_trajectory(base, x, y, z)
+        if(success):
+            print('i am at position 1')
+        success &= example_trajectory(base, x, y - .41, z)
+        if(success):
+            print('i am at position 2')
+        """
+        success &= example_twist_command(base, .025, -.04, .03)
+        success &= ExampleSendGripperCommands(gripper, .4)
+        success &= example_twist_command(base, .025, .04, -.03)
+        success &= example_trajectory(base, x, y, z)
+        """
 
         return 0 if success else 1
 

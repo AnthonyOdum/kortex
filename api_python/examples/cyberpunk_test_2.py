@@ -154,7 +154,7 @@ def ExampleSendGripperCommands(self, gripPos):
 
         return True
 
-def main():
+def main(x,y,z):
     # Import the utilities helper module
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     import utilities
@@ -173,7 +173,7 @@ def main():
         # Example core
         success = True
         success &= example_move_to_home_position(base)
-        success &= exa
+        success &= example_trajectory(base, .56, .2, .2)
 
         # Create a context object. This object owns the handles to all connected realsense devices
         pipeline = rs.pipeline()
@@ -184,7 +184,10 @@ def main():
 
         # Start streaming
         pipeline.start(config)
+        print('streaming started')
 
+        y = .2
+        flag = True
         while True:
             # This call waits until a new coherent set of frames is available on a device
             # Calls to get_frame_data(...) and get_frame_timestamp(...) on a device will return stable values until wait_for_frames(...) is called
@@ -198,9 +201,15 @@ def main():
             print(width)
             print(height)
             print(distance)
+            example_twist_command(base, 0, -.01, .0)
+            y -= .01
+
+            if(y < -.2):
+                flag = False
+
 
             min_distance = 4
-            
+
         
 
         """
@@ -225,4 +234,5 @@ def main():
         return 0 if success else 1
 
 if __name__ == "__main__":
-    main()
+    main(.025, -.05, .03)
+    ExampleSendGripperCommands(gripper, 0.4)

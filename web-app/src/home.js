@@ -4,7 +4,7 @@ import homeLogo from '../src/home-icon.png';
 /*change action*/
 function callBackend() {
     let xhttp = new XMLHttpRequest()
-    xhttp.open('GET', 'http://localhost:5000/start')
+    xhttp.open('GET', 'http://localhost:5000/home')
     xhttp.send()
 }
 
