@@ -17,7 +17,10 @@ import time
 import sys
 import os
 import threading
-import pyrealsense2 as rs
+
+sys.path.insert(0, '/Users/grandmastervirg/Documents/kortex/librealsense')
+
+##import librealsense.wrappers.python.pyrealsense2  as rs
 from cyberpunk_test import example_trajectory, populateCartesianCoordinate
 
 from kortex_api.TCPTransport import TCPTransport

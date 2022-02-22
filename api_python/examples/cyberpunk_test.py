@@ -18,7 +18,7 @@ import sys
 import os
 import threading
 from kortex_api.autogen.messages.ProductConfiguration_pb2 import ARM_LATERALITY_LEFT
-import pyrealsense2 as rs
+#import pyrealsense2 as rs
 
 
 from kortex_api.TCPTransport import TCPTransport
@@ -252,6 +252,9 @@ def initialize():
 """
 
 def robot_panning(x:float, y:float, z:float):
+    start_y = .189
+    start_x = .558
+    start_z = .134
     # Import the utilities helper module
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
     import utilities
@@ -291,10 +294,10 @@ def robot_panning(x:float, y:float, z:float):
         if(success):
             print('im home')
             print(base.GetMeasuredCartesianPose())
-        success &= example_trajectory(base, x, y, z)
+        success &= example_trajectory(base, start_x, start_y, start_z)
         
         subtraction = True
-        minDistance = 100
+        minDistance = .5
         objectFacingPose = {
             'x': 0,
             'y': 0,
@@ -333,41 +336,54 @@ def robot_panning(x:float, y:float, z:float):
                 example_trajectory(base, x, .189, z)
 
             """
-            if(y <= .189 and subtraction):
-                y -= .004
-                example_trajectory(base, x, y, z)
+            if(start_y <= .189 and subtraction):
+                start_y -= .004
+                example_trajectory(base, start_x, start_y, start_z)
                 #print(base.GetMeasuredCartesianPose())
                 #print(y)
-                if(y <= -.208):
+                if(start_y <= -.208):
                     print('robot facing object position: ', objectFacingPose)
                     print('minimum distance: ', minDistance)
                     #print('subtraction is now false')
                     subtraction = False
             
-            if(minDistance != 100 and y <= -.208):
+            if(minDistance != .5 and start_y <= -.208):
                 working = True
                 working &= example_trajectory(base, objectFacingPose['x'], objectFacingPose['y'], objectFacingPose['z'])
                 working &= example_twist_command(base, .0, 0, .04)
 
-                working &= ExampleSendGripperCommands(gripper, 0.3)
+                working &= ExampleSendGripperCommands(gripper, 0.4)
                 working &= example_move_to_home_position(base)
 
-                working &= example_trajectory(base, .543, .119, .17)
+                working &= example_trajectory(base, x, y, z)
                 working &= ExampleSendGripperCommands(gripper, 0)
                 working &= example_move_to_home_position(base)
+                minDistance = .5
 
 
 
-            if(y <= -.208 or not subtraction):
-                y += .004
-                example_trajectory(base, x, y, z)
+            if(start_y <= -.208 or not subtraction):
+                start_y += .004
+                example_trajectory(base, start_x, start_y, start_z)
                 #print(base.GetMeasuredCartesianPose())
-                if(y >= .189):
+                if(start_y >= .189):
                     print('robot facing object position: ', objectFacingPose)
                     print('minimum distance: ', minDistance)
                     subtraction = True
-                    y = .189
+                    start_y = .189
 
+            if(minDistance != .5 and start_y >= .189):
+                working = True
+                working &= example_trajectory(base, objectFacingPose['x'], objectFacingPose['y'], objectFacingPose['z'])
+                working &= example_twist_command(base, .0, 0, .04)
+
+                working &= ExampleSendGripperCommands(gripper, 0.4)
+                working &= example_move_to_home_position(base)
+
+                working &= example_trajectory(base, x, y, z)
+                working &= ExampleSendGripperCommands(gripper, 0)
+                working &= example_move_to_home_position(base)
+                minDistance = .5
             
             base.SendTwistCommand(command)
 
